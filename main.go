@@ -35,8 +35,15 @@ func main() {
 	for rows.Next() {
 		// rowsの中身を格納するArticle型の変数を用意
 		var article models.Article
+		var createdTime sql.NullTime
+
 		// 変数にrowsの中身を読み出す
-		err := rows.Scan(&article.ID, &article.Title, &article.Contents, &article.UserName, &article.NiceNum, &article.CreatedAt)
+		err := rows.Scan(&article.ID, &article.Title, &article.Contents, &article.UserName, &article.NiceNum, &createdTime)
+
+		if createdTime.Valid {
+			article.CreatedAt = createdTime.Time
+		}
+
 		if err != nil {
 			fmt.Println(err)
 		} else {
