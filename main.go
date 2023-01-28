@@ -19,14 +19,8 @@ func main() {
 		fmt.Println(err)
 	}
 
-	// if err := db.Ping(); err != nil {
-	// 	fmt.Println(err)
-	// } else {
-	// 	fmt.Println("connect to DB")
-	// }
-
 	const sqlStr = `
-		select title, contents, username, nice from articles;
+		select * from articles;
 	`
 
 	// クエリの返り値がrowsに格納される
@@ -42,7 +36,7 @@ func main() {
 		// rowsの中身を格納するArticle型の変数を用意
 		var article models.Article
 		// 変数にrowsの中身を読み出す
-		err := rows.Scan(&article.Title, &article.Contents, &article.UserName, &article.NiceNum)
+		err := rows.Scan(&article.ID, &article.Title, &article.Contents, &article.UserName, &article.NiceNum, &article.CreatedAt)
 		if err != nil {
 			fmt.Println(err)
 		} else {
