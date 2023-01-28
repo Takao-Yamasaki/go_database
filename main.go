@@ -19,17 +19,22 @@ func main() {
 		fmt.Println(err)
 	}
 
+	// クエリの定義
+	articleID := 1
 	const sqlStr = `
-		select * from articles;
+		select *
+		from articles
+		where article_id = ?;
 	`
-
+	// クエリの実行
 	// クエリの返り値がrowsに格納される
-	rows, err := db.Query(sqlStr)
+	rows, err := db.Query(sqlStr, articleID)
 	if err != nil {
 		fmt.Println(err)
 	}
 	defer rows.Close()
 
+	// データベースから取得したデータをarticleに読み出す
 	// スライスを用意
 	articleArray := make([]models.Article, 0)
 	for rows.Next() {
