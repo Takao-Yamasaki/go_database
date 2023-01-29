@@ -19,34 +19,24 @@ func main() {
 		fmt.Println(err)
 	}
 
-	// クエリの定義
-	articleID := 1000
-	const sqlStr = `
-		select *
-		from articles
-		where article_id = ?;
-	`
-	// クエリの実行
-	// クエリの返り値がrowsに格納される
-	row := db.QueryRow(sqlStr, articleID)
-	if err := row.Err(); err != nil {
-		fmt.Println(err)
-		return
+	// データを挿入する処理
+	article := models.Article{
+		Title:    "insert test",
+		Contents: "Can I insert data correctly?",
+		UserName: "saki",
 	}
 
-	// データベースから取得したデータをarticleに読fみ出す
-	var article models.Article
-	var createdTime sql.NullTime
-
-	err = row.Scan(&article.ID, &article.Title, &article.Contents, &article.UserName, &article.NiceNum, &createdTime)
+	const sqlStr = `
+		insert into articles(title, contents, username, nice, created_at)
+		values (?, ?, ?, 0, now());
+	`
+	result, err := db.Exec(sqlStr, article.Title, article.Contents, article.UserName)
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
 
-	if createdTime.Valid {
-		article.CreatedAt = createdTime.Time
-	}
-
-	fmt.Printf("%+v\n", article)
+	// 結果を確認
+	fmt.Println(result.LastInsertId())
+	fmt.Println(result.RowsAffected())
 }
