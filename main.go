@@ -3,7 +3,6 @@ package main
 import (
 	"database/sql"
 	"fmt"
-	"github.com/Takao-Yamasaki/go_database/models"
 
 	_ "github.com/go-sql-driver/mysql"
 )
@@ -19,24 +18,45 @@ func main() {
 		fmt.Println(err)
 	}
 
-	// データを挿入する処理
-	article := models.Article{
-		Title:    "insert test",
-		Contents: "Can I insert data correctly?",
-		UserName: "saki",
-	}
-
-	const sqlStr = `
-		insert into articles(title, contents, username, nice, created_at)
-		values (?, ?, ?, 0, now());
-	`
-	result, err := db.Exec(sqlStr, article.Title, article.Contents, article.UserName)
+	// トランザクションの開始
+	tx, err := db.Begin()
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
 
-	// 結果を確認
-	fmt.Println(result.LastInsertId())
-	fmt.Println(result.RowsAffected())
+	// 現在のいいね数を取得するクエリの実行
+	article_id := 1
+	const sqlGetNice = `
+		select nice
+		from articles
+		where article_id = ?;
+	`
+	row := tx.QueryRow(sqlGetNice, article_id)
+	if err := row.Err(); err != nil {
+		fmt.Println(err)
+		tx.Rollback()
+		return
+	}
+
+	// 変数nicenumに現在のいいね数を読み込む
+	var nicenum int
+	err = row.Scan(&nicenum)
+	if err != nil {
+		fmt.Println(err)
+		tx.Rollback()
+		return
+	}
+
+	// いいね数を+1する更新処理を行う
+	const sqlUpdateNice = `update articles set nice = ? where article_id = ?`
+	_, err = tx.Exec(sqlUpdateNice, nicenum+1, article_id)
+	if err != nil {
+		fmt.Println(err)
+		tx.Rollback()
+		return
+	}
+
+	// コミットして処理内容を確定させる
+	tx.Commit()
 }
